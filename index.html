@@ -111,6 +111,15 @@
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     @media (max-width:840px){.layout{grid-template-columns:1fr}.aside{display:grid;grid-template-columns:1fr 1fr;gap:14px}.sidecard{margin-bottom:0}.round-hint{margin-left:0}.topright{display:none}}
     @media (max-width:610px){.page{padding:10px 12px 30px}.topbar{padding:8px 2px 13px}.hero{padding:22px;border-radius:21px}.hero p:last-child{font-size:12px}.settings{margin:17px 0 13px;gap:8px}.note{flex-basis:100%}.weeks{width:100%;justify-content:space-between}.week{flex:1}.daynav{grid-template-columns:repeat(2,1fr);gap:8px}.daybutton{min-height:86px;padding:12px}.daybutton[aria-pressed=true]{padding:11px}.workout,.sidecard{border-radius:18px}.workout{padding:17px 13px}.heading-row{align-items:start}.heading-row h2{font-size:22px}.chip{font-size:10px;padding:7px}.ex-row{grid-template-columns:24px minmax(0,1fr);row-gap:7px}.smalltimer,.ex-row .complete-tag{grid-column:2;justify-self:start}.aside{grid-template-columns:1fr}.timer-dock{bottom:max(9px,env(safe-area-inset-bottom));padding:11px 12px;width:calc(100% - 16px);border-radius:13px}.timer-dock-inner{flex-wrap:wrap;gap:7px}.timer-name{max-width:170px}.timer-buttons{width:100%}.timer-buttons button{flex:1}.timer-count{font-size:25px}.topright{display:none}}
+    .exercise-guide{grid-column:2/-1;min-width:0}
+    .task-simple:has(.exercise-guide){display:grid;grid-template-columns:23px minmax(0,1fr)}
+    .exercise-guide summary{width:max-content;max-width:100%;cursor:pointer;color:var(--teal-dark);font-size:12px;font-weight:800;padding:10px 0}
+    .exercise-guide summary:focus-visible{outline:3px solid #f0a272;outline-offset:3px}
+    .guide-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr));gap:8px}
+    .guide-photos figure{margin:0;min-width:0}
+    .guide-photos img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:#f0f5f4;border-radius:9px}
+    .guide-photos figcaption,.guide-credit{font-size:11px;line-height:1.4;color:var(--ink2);margin-top:5px}
+    .guide-credit a{color:var(--teal-dark)}
     @media (prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -213,6 +222,20 @@
         notes:'La prima fase è senza salti. Se la seduta è troppo lunga, riduci il cardio: massimo 45 minuti.'
       }
     };
+    const photoGuides = {
+      'Squat a discesa lenta': {
+        id: 'squat', source: 'Bodyweight_Squat',
+        captions: ['Partenza in piedi, con i piedi ben appoggiati.', 'Scendi in tre secondi fino a una profondità che controlli, poi risali.']
+      },
+      'Ponte glutei': {
+        id: 'ponte-glutei', source: 'Butt_Lift_Bridge',
+        captions: ['Sdraiati con le ginocchia piegate e i piedi appoggiati.', 'Solleva il bacino mantenendo le spalle a terra, poi riabbassalo con controllo.']
+      },
+      'Dead bug facilitato': {
+        id: 'dead-bug', source: 'Dead_Bug',
+        captions: ['Sdraiati con le ginocchia piegate e le braccia verso l’alto.', 'Muovi una gamba alla volta, mantenendo la schiena stabile. Torna al centro e cambia lato.']
+      }
+    };
     const days=['lun','mar','gio','sab'];
     const hints={1:'Tecnica prima di tutto',2:'Mantieni il ritmo',3:'Più sicurezza nei movimenti',4:'Consolida, senza accelerare'};
     const preset = (()=>{ const i=new Date().getDay();return {1:'lun',2:'mar',4:'gio',6:'sab'}[i]||'lun';})();
@@ -257,16 +280,38 @@
     function renderWeek(){const root=$('weekSelector');root.innerHTML='';for(let w=1;w<=4;w++){let b=el('button','week',String(w));b.type='button';b.dataset.week=w;b.setAttribute('aria-pressed',String(week===w));b.title=`Settimana ${w}`;root.append(b)}}
     function renderDays(){const root=$('dayNav');root.innerHTML='';for(const day of days){const d=workouts[day],b=el('button','daybutton');b.type='button';b.dataset.day=day;b.setAttribute('aria-pressed',String(activeDay===day));const dot=el('span',`done-dot ${dayPct(day)===100?'done':''}`);dot.setAttribute('aria-hidden','true');b.append(dot,el('span','day-abbr',d.short),el('span','day-name',d.title),el('span','day-small',`${d.duration} min · ${dayPct(day)}%`));root.append(b)}}
     function taskBox(id,checked,aria){let x=el('input','boxcheck');x.type='checkbox';x.checked=!!checked;x.dataset.task=id;x.setAttribute('aria-label',aria);return x}
-    function simpleTask(id,title,desc,seconds){const checked=!!stateFor().checked[id];const wrap=el('div',`task-simple ${checked?'checked':''}`);wrap.append(taskBox(id,checked,`Segna completato: ${title}`));const body=el('div','simpletext');const a=el('strong','',title),b=el('span','',desc);body.append(a,b);wrap.append(body);if(seconds){const bt=el('button','smalltimer','Avvia timer');bt.type='button';bt.dataset.duration=seconds;bt.dataset.title=title;wrap.append(bt)}return wrap}
+    function simpleTask(id,title,desc,seconds,guideName){const checked=!!stateFor().checked[id];const wrap=el('div',`task-simple ${checked?'checked':''}`);wrap.append(taskBox(id,checked,`Segna completato: ${title}`));const body=el('div','simpletext');const a=el('strong','',title),b=el('span','',desc);body.append(a,b);wrap.append(body);if(seconds){const bt=el('button','smalltimer','Avvia timer');bt.type='button';bt.dataset.duration=seconds;bt.dataset.title=title;wrap.append(bt)}if(guideName) wrap.append(renderPhotoGuide(guideName));return wrap}
+    function renderPhotoGuide(name){
+      const guide=photoGuides[name];
+      const details=el('details','exercise-guide');
+      details.append(el('summary','','Come si fa'));
+      const photos=el('div','guide-photos');
+      guide.captions.forEach((caption,index)=>{
+        const figure=el('figure');
+        const photo=el('img');
+        photo.src=`./images/${guide.id}-${index+1}.webp`;
+        photo.loading='lazy';
+        photo.decoding='async';
+        photo.alt=caption;
+        figure.append(photo,el('figcaption','',caption));
+        photos.append(figure);
+      });
+      const credit=el('p','guide-credit');
+      const source=el('a','','Fonte delle foto');
+      source.href=`https://github.com/yuhonas/free-exercise-db/tree/main/exercises/${guide.source}`;
+      credit.append(source);
+      details.append(photos,credit);
+      return details;
+    }
     function renderWorkout(){const d=workouts[activeDay],root=$('workout'),s=stateFor(),numRounds=d.rounds[week-1];round=Math.min(round,numRounds-1);root.innerHTML='';
       const head=el('div','heading-row'),titleBox=el('div');titleBox.append(el('div','kicker',`${d.day} · ${d.category}`),el('h2','',d.title),el('p','intro',`${d.duration} minuti indicativi · ${d.effort}`));head.append(titleBox,el('span','chip',`Sett. ${week}`));root.append(head);
       const p=el('div','progressline');const info=el('div','progress-caption');info.append(el('span','',`Completati ${countCompleted(activeDay)} di ${totalTasks(activeDay)} passaggi`),el('strong','',`${dayPct(activeDay)}%`));const track=el('div','track');const bar=el('div','bar');bar.style.width=`${dayPct(activeDay)}%`;track.append(bar);p.append(info,track);root.append(p);
       const warmH=el('div','block-head');const warmTitle=el('div','block-title');warmTitle.append(el('span','num','1'),document.createTextNode('Riscaldamento'));warmH.append(warmTitle,el('span','mini','5 minuti'));root.append(warmH,simpleTask('warmup','Riscaldamento',d.warm,300));
       const bHead=el('div','block-head');const bTitle=el('div','block-title');bTitle.append(el('span','num','2'),document.createTextNode('Circuito'));bHead.append(bTitle,el('span','mini',`${numRounds} giri`));root.append(bHead);
       const rounds=el('div','roundpicker');for(let r=0;r<numRounds;r++){const b=el('button','roundbtn',`Giro ${r+1} · ${d.exercises.filter((_,i)=>s.checked[`r${r}-e${i}`]).length}/${d.exercises.length}`);b.type='button';b.dataset.round=r;b.setAttribute('aria-pressed',String(round===r));rounds.append(b)}const h=el('span','round-hint',d.recovery?`${d.recovery} sec tra esercizi · ${d.roundRecovery} sec tra giri`:(d.roundRecovery?`${d.roundRecovery} sec tra giri`:'Senza recuperi programmati'));rounds.append(h);root.append(rounds);
-      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}list.append(row)});root.append(list);
+      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}if(photoGuides[name]) row.append(renderPhotoGuide(name));list.append(row)});root.append(list);
       root.append(el('div','note-strip',d.notes));
-      const finH=el('div','block-head'),finTitle=el('div','block-title');finTitle.append(el('span','num','3'),document.createTextNode('Fase finale'));finH.append(finTitle);root.append(finH,simpleTask('finish','Movimento finale',d.finish,d.finishSeconds));
+      const finH=el('div','block-head'),finTitle=el('div','block-title');finTitle.append(el('span','num','3'),document.createTextNode('Fase finale'));finH.append(finTitle);root.append(finH,simpleTask('finish','Movimento finale',d.finish,d.finishSeconds,activeDay==='mar'?'Dead bug facilitato':undefined));
       const stH=el('div','block-head'),stTitle=el('div','block-title');stTitle.append(el('span','num','4'),document.createTextNode('Stretching'));stH.append(stTitle);root.append(stH,simpleTask('stretch','Stretching e defaticamento',d.stretch,d.stretchSeconds));
       $('dailyStats').textContent=`${dayPct(activeDay)}%`;$('weeklyStats').textContent=`${weekCount()}/4`;
     }

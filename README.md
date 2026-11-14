@@ -20,3 +20,7 @@ Web app gratuita e statica per allenarsi a casa: 4 giorni di esercizi a corpo li
 ## Avvertenza
 
 È una scheda di movimento generale, non un consulto medico. Interrompere se si verificano sintomi anomali.
+
+## Fotografie degli esercizi
+
+Le sequenze dello squat, del ponte glutei e del dead bug provengono dal progetto [Free Exercise DB](https://github.com/yuhonas/free-exercise-db), che presenta il proprio archivio fotografico come pubblico dominio. Le immagini sono state ridimensionate e convertite in WebP senza metadati. I file sono serviti da GitHub Pages e inclusi nella cache offline.
