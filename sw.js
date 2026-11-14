@@ -1,7 +1,7 @@
 // Cache statico per usare Restart Casa anche senza rete dopo la prima apertura.
 const SCOPE = self.registration.scope;
 const CACHE_PREFIX = 'restart-casa:' + SCOPE + ':';
-const CACHE = CACHE_PREFIX + 'v4';
+const CACHE = CACHE_PREFIX + 'v5';
 const FILES = [
   new URL('./', SCOPE).href,
   new URL('./index.html', SCOPE).href,
@@ -10,7 +10,8 @@ const FILES = [
   new URL('./icons/icon-512.png', SCOPE).href,
   ...[
     'squat-1', 'squat-2', 'ponte-glutei-1', 'ponte-glutei-2', 'dead-bug-1', 'dead-bug-2',
-    'mini-squat-1', 'polpacci-1', 'polpacci-2', 'bird-dog-1', 'pugni-avanti-1', 'camminata-1'
+    'mini-squat-1', 'polpacci-1', 'polpacci-2', 'bird-dog-1', 'pugni-avanti-1', 'camminata-1',
+    'marcia-1', 'passo-indietro-1', 'passi-laterali-1'
   ].map(name => new URL(`./images/${name}.webp`, SCOPE).href)
 ];
 self.addEventListener('install', event => {
