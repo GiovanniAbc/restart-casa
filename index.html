@@ -141,6 +141,7 @@
     <div class="settings">
       <span class="week-head">Settimana</span><div class="weeks" id="weekSelector" role="group" aria-label="Seleziona settimana"></div>
       <span class="note">Nella fase iniziale puoi ripetere una settimana se serve.</span>
+      <button type="button" class="action ghost" id="testTimerAudio">Prova audio</button>
     </div>
     <nav class="daynav" id="dayNav" aria-label="Giorni di allenamento"></nav>
     <div class="layout">
@@ -412,7 +413,8 @@
       $('dailyStats').textContent=`${dayPct(activeDay)}%`;$('weeklyStats').textContent=`${weekCount()}/4`;
     }
     function renderAll(){renderWeek();renderDays();renderWorkout();renderSessionClock();renderTimer()}
-    let timerAudio;
+    let timerAudio, mediaAudio;
+    let timerAudioErrorShown=false;
     function enableTimerAudio(){
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if(!AudioContext) return;
@@ -423,23 +425,42 @@
         // The visual timer remains available if the browser blocks audio.
       }
     }
-    function playTimerTone(frequency, duration, volume){
-      if(timerAudio?.state !== 'running') return;
-      const start=timerAudio.currentTime;
-      const tone=timerAudio.createOscillator();
-      const envelope=timerAudio.createGain();
-      tone.frequency.value=frequency;
-      envelope.gain.setValueAtTime(.001,start);
-      envelope.gain.exponentialRampToValueAtTime(volume,start+.01);
-      envelope.gain.exponentialRampToValueAtTime(.001,start+duration);
-      tone.connect(envelope);
-      envelope.connect(timerAudio.destination);
-      tone.onended=()=>{
-        tone.disconnect();
-        envelope.disconnect();
-      };
-      tone.start(start);
-      tone.stop(start+duration);
+    async function playTimerSound(kind){
+      try {
+        if(timerAudio?.state==='running'){
+          const start=timerAudio.currentTime;
+          const isEnd=kind==='fine';
+          const duration=isEnd?.7:.14;
+          const tone=timerAudio.createOscillator();
+          const envelope=timerAudio.createGain();
+          tone.frequency.value=isEnd?630:880;
+          envelope.gain.setValueAtTime(.001,start);
+          envelope.gain.exponentialRampToValueAtTime(.32,start+.012);
+          envelope.gain.exponentialRampToValueAtTime(.001,start+duration);
+          tone.connect(envelope);
+          envelope.connect(timerAudio.destination);
+          tone.onended=()=>{
+            tone.disconnect();
+            envelope.disconnect();
+          };
+          tone.start(start);
+          tone.stop(start+duration);
+        }else{
+          mediaAudio ||= new Audio();
+          const file=new URL(`./audio/${kind}.wav`,document.baseURI).href;
+          if(mediaAudio.src!==file) mediaAudio.src=file;
+          mediaAudio.currentTime=0;
+          await mediaAudio.play();
+        }
+        timerAudioErrorShown=false;
+        return true;
+      } catch(error) {
+        if(error.name!=='AbortError' && !timerAudioErrorShown){
+          timerAudioErrorShown=true;
+          notify('Audio non disponibile. Tocca «Prova audio» e controlla il volume multimediale.');
+        }
+        return false;
+      }
     }
     function startTimer(seconds,label,kind='RECUPERO'){
       if(!seconds) return;
@@ -458,7 +479,7 @@
       timer.paused=true;
       timer.remaining=0;
       notify(`Timer terminato: ${timer.title}`);
-      playTimerTone(630,.65,.15);
+      playTimerSound('fine');
       try{navigator.vibrate?.([100,70,100])}catch{}
     }
     function update(){
@@ -468,7 +489,7 @@
           finishTimer();
         }else if(secondsLeft<timer.lastBeep){
           timer.lastBeep=secondsLeft;
-          playTimerTone(880,.10,.10);
+          playTimerSound('beep');
         }
       }
       if(timer) renderTimer();
@@ -507,6 +528,7 @@
       if(e.target.matches('input[data-task]')) toggleTask(e.target.dataset.task,e.target.checked);
     });
     document.addEventListener('click',e=>{
+      if(e.target.matches?.('input[data-task]')) enableTimerAudio();
       const button=e.target.closest('button');
       if(!button) return;
       if(button.dataset.week || button.dataset.day){
@@ -529,6 +551,11 @@
       if(button.dataset.duration){
         startTimer(Number(button.dataset.duration),button.dataset.title,'TIMER ESERCIZIO');
       }
+    });
+    $('testTimerAudio').addEventListener('click',async()=>{
+      timerAudioErrorShown=false;
+      enableTimerAudio();
+      if(await playTimerSound('fine')) notify('Suono di prova riprodotto.');
     });
     $('timerPause').addEventListener('click',()=>{
       if(!timer || timer.finished) return;

@@ -1,13 +1,15 @@
 // Cache statico per usare Restart Casa anche senza rete dopo la prima apertura.
 const SCOPE = self.registration.scope;
 const CACHE_PREFIX = 'restart-casa:' + SCOPE + ':';
-const CACHE = CACHE_PREFIX + 'v8';
+const CACHE = CACHE_PREFIX + 'v9';
 const FILES = [
   new URL('./', SCOPE).href,
   new URL('./index.html', SCOPE).href,
   new URL('./manifest.webmanifest', SCOPE).href,
   new URL('./icons/icon-192.png', SCOPE).href,
   new URL('./icons/icon-512.png', SCOPE).href,
+  new URL('./audio/beep.wav', SCOPE).href,
+  new URL('./audio/fine.wav', SCOPE).href,
   ...[
     'squat-1', 'squat-2', 'ponte-glutei-1', 'ponte-glutei-2', 'dead-bug-1', 'dead-bug-2',
     'mini-squat-1', 'polpacci-1', 'polpacci-2', 'bird-dog-1', 'pugni-avanti-1', 'camminata-1',
