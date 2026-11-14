@@ -412,12 +412,68 @@
       $('dailyStats').textContent=`${dayPct(activeDay)}%`;$('weeklyStats').textContent=`${weekCount()}/4`;
     }
     function renderAll(){renderWeek();renderDays();renderWorkout();renderSessionClock();renderTimer()}
-    function startTimer(seconds,label,kind='RECUPERO'){if(!seconds)return;timer={seconds,title:label,kind,deadline:Date.now()+seconds*1000,remaining:seconds*1000,paused:false,finished:false};renderTimer()}
+    let timerAudio;
+    function enableTimerAudio(){
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if(!AudioContext) return;
+      try {
+        timerAudio ||= new AudioContext();
+        if(timerAudio.state !== 'running') timerAudio.resume().catch(()=>{});
+      } catch {
+        // The visual timer remains available if the browser blocks audio.
+      }
+    }
+    function playTimerTone(frequency, duration, volume){
+      if(timerAudio?.state !== 'running') return;
+      const start=timerAudio.currentTime;
+      const tone=timerAudio.createOscillator();
+      const envelope=timerAudio.createGain();
+      tone.frequency.value=frequency;
+      envelope.gain.setValueAtTime(.001,start);
+      envelope.gain.exponentialRampToValueAtTime(volume,start+.01);
+      envelope.gain.exponentialRampToValueAtTime(.001,start+duration);
+      tone.connect(envelope);
+      envelope.connect(timerAudio.destination);
+      tone.onended=()=>{
+        tone.disconnect();
+        envelope.disconnect();
+      };
+      tone.start(start);
+      tone.stop(start+duration);
+    }
+    function startTimer(seconds,label,kind='RECUPERO'){
+      if(!seconds) return;
+      enableTimerAudio();
+      timer={
+        seconds,title:label,kind,deadline:Date.now()+seconds*1000,remaining:seconds*1000,
+        paused:false,finished:false,lastBeep:6
+      };
+      update();
+    }
     function timerRemaining(){if(!timer)return 0;return timer.paused?timer.remaining:Math.max(0,timer.deadline-Date.now())}
     function stopTimer(){timer=null;renderTimer()}
     function renderTimer(){const dock=$('timerDock');if(!timer){dock.classList.remove('active');return}dock.classList.add('active');$('timerKind').textContent=timer.kind;$('timerTitle').textContent=timer.title;$('timerCount').textContent=formatSecs(timerRemaining()/1000);$('timerPause').textContent=timer.paused?'Riprendi':'Pausa';$('timerPause').disabled=timer.finished;$('timerProgress').style.width=`${Math.max(0,Math.min(100,timerRemaining()/1000/timer.seconds*100))}%`;}
-    function finishTimer(){if(!timer||timer.finished)return;timer.finished=true;timer.paused=true;timer.remaining=0;renderTimer();notify(`Timer terminato: ${timer.title}`);try{if(navigator.vibrate)navigator.vibrate([100,70,100])}catch{};try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){const ac=new AC();const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=760;g.gain.setValueAtTime(.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.2);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.22);setTimeout(()=>ac.close().catch(()=>{}),400)}}catch{}}
-    function update(){if(timer && !timer.paused && timerRemaining()<=0)finishTimer();if(timer)renderTimer();renderSessionClock()}
+    function finishTimer(){
+      timer.finished=true;
+      timer.paused=true;
+      timer.remaining=0;
+      notify(`Timer terminato: ${timer.title}`);
+      playTimerTone(630,.65,.15);
+      try{navigator.vibrate?.([100,70,100])}catch{}
+    }
+    function update(){
+      if(timer && !timer.paused){
+        const secondsLeft=Math.ceil(timerRemaining()/1000);
+        if(secondsLeft===0){
+          finishTimer();
+        }else if(secondsLeft<timer.lastBeep){
+          timer.lastBeep=secondsLeft;
+          playTimerTone(880,.10,.10);
+        }
+      }
+      if(timer) renderTimer();
+      renderSessionClock();
+    }
     function renderSessionClock(){$('sessionClock').textContent=formatSecs(sessionMs()/1000);$('sessionToggle').textContent=sessionTimer.running?'Pausa':'Avvia'}
     function toggleTask(id,checked){
       const state=stateFor();
@@ -474,12 +530,26 @@
         startTimer(Number(button.dataset.duration),button.dataset.title,'TIMER ESERCIZIO');
       }
     });
-    $('timerPause').addEventListener('click',()=>{if(!timer||timer.finished)return;if(timer.paused){timer.deadline=Date.now()+timer.remaining;timer.paused=false}else{timer.remaining=timerRemaining();timer.paused=true}renderTimer()});
+    $('timerPause').addEventListener('click',()=>{
+      if(!timer || timer.finished) return;
+      if(timer.paused){
+        enableTimerAudio();
+        timer.deadline=Date.now()+timer.remaining;
+        timer.paused=false;
+        update();
+      }else{
+        timer.remaining=timerRemaining();
+        if(timer.remaining===0) finishTimer();
+        timer.paused=true;
+        renderTimer();
+      }
+    });
     $('timerReset').addEventListener('click',()=>{
       if(!timer) return;
       timer.remaining=timer.seconds*1000;
       timer.paused=true;
       timer.finished=false;
+      timer.lastBeep=6;
       renderTimer();
     });
     $('timerSkip').addEventListener('click',stopTimer);

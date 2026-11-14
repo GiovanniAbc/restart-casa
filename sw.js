@@ -1,7 +1,7 @@
 // Cache statico per usare Restart Casa anche senza rete dopo la prima apertura.
 const SCOPE = self.registration.scope;
 const CACHE_PREFIX = 'restart-casa:' + SCOPE + ':';
-const CACHE = CACHE_PREFIX + 'v7';
+const CACHE = CACHE_PREFIX + 'v8';
 const FILES = [
   new URL('./', SCOPE).href,
   new URL('./index.html', SCOPE).href,
