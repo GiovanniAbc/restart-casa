@@ -119,8 +119,7 @@
     .guide-photos figure{margin:0;min-width:0}
     .guide-photos img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:#f0f5f4;border-radius:9px}
     .guide-photos figcaption,.guide-credit{font-size:11px;line-height:1.4;color:var(--ink2);margin-top:5px}
-    .guide-credit a,.exercise-reference{color:var(--teal-dark)}
-    .exercise-reference{grid-column:2/-1;justify-self:start;font-size:12px;font-weight:750;padding:8px 0}
+    .guide-credit a{color:var(--teal-dark)}
     @media (prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -224,6 +223,34 @@
       }
     };
     const photoGuides = {
+      'Avvicinamento scapole': {
+        id: 'scapole',
+        source: 'https://doi.org/10.26603/001c.31727',
+        credit: 'Sciascia e Kibler · figura 7 · CC BY-NC 4.0',
+        license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+        captions: ['A: rilassa le spalle con le braccia lungo i fianchi. B: avvicina le scapole senza inarcare la schiena, poi rilassale.']
+      },
+      'Hip hinge': {
+        id: 'hip-hinge',
+        source: 'https://doi.org/10.1186/1471-2474-8-90',
+        credit: 'Luomajoki e colleghi · figura 1A · CC BY 2.0',
+        license: 'https://creativecommons.org/licenses/by/2.0/',
+        captions: ['Piega appena le ginocchia, porta il bacino indietro e inclina il busto mantenendo la schiena neutra. Torna in piedi.']
+      },
+      'Affondo indietro corto': {
+        id: 'affondo-corto',
+        source: 'https://www.pexels.com/video/man-doing-leg-exercise-4804793/',
+        credit: 'Ketut Subiyanto · fotogrammi da Pexels',
+        license: 'https://www.pexels.com/license/',
+        captions: ['I fotogrammi mostrano la posizione delle gambe. Per la tua variante fai un passo indietro più corto di quello mostrato.', 'Piega poco le ginocchia, poi torna in piedi. Puoi appoggiarti al muro per l’equilibrio.']
+      },
+      'Reverse snow angel': {
+        id: 'reverse-snow-angel',
+        source: 'https://doi.org/10.1136/bmjsem-2021-001270',
+        credit: 'Achenbach e colleghi · supplemento, pag. 8 · CC BY 4.0',
+        license: 'https://creativecommons.org/licenses/by/4.0/',
+        captions: ['A pancia in giù, parti con le braccia vicino ai fianchi. Le foto mostrano una variante con palla. Nella tua scheda lascia le mani libere.', 'Muovi lentamente le braccia verso la testa formando un arco. Fermati dove il movimento resta comodo, poi torna indietro.']
+      },
       'Push-up al muro': {
         id: 'push-up-muro',
         source: 'https://www.pexels.com/video/a-man-doing-wall-push-ups-5034563/',
@@ -300,12 +327,6 @@
         captions: ['Sdraiati con le ginocchia piegate e le braccia verso l’alto.', 'Muovi una gamba alla volta, mantenendo la schiena stabile. Torna al centro e cambia lato.']
       }
     };
-    const photoReferences = {
-      'Avvicinamento scapole': ['The Philadelphia Inquirer · foto in piedi', 'https://www.inquirer.com/health/wellness/exercises-for-better-posture-20210316.html'],
-      'Affondo indietro corto': ['Hinge Health · esempio di affondo più profondo', 'https://www.hingehealth.com/resources/articles/reverse-lunges/'],
-      'Hip hinge': ['Muscle & Fitness · due foto senza pesi', 'https://www.muscleandfitness.com/exercise/workouts/leg-exercises/good-morning/'],
-      'Reverse snow angel': ['uFit · sequenza «リバーススノーエンジェル»', 'https://ufit.co.jp/blogs/training/latissimustraining']
-    };
     const days=['lun','mar','gio','sab'];
     const hints={1:'Tecnica prima di tutto',2:'Mantieni il ritmo',3:'Più sicurezza nei movimenti',4:'Consolida, senza accelerare'};
     const preset = (()=>{ const i=new Date().getDay();return {1:'lun',2:'mar',4:'gio',6:'sab'}[i]||'lun';})();
@@ -378,23 +399,13 @@
       details.append(photos,credit);
       return details;
     }
-    function renderPhotoReference(name){
-      const [label,url]=photoReferences[name];
-      const link=el('a','exercise-reference',name==='Affondo indietro corto'?'Vedi affondo più profondo · fonte esterna':'Vedi esempio · fonte esterna');
-      link.href=url;
-      link.target='_blank';
-      link.rel='noopener noreferrer';
-      link.title=label;
-      link.setAttribute('aria-label',`Vedi esempio per ${name}: ${label} (nuova scheda)`);
-      return link;
-    }
     function renderWorkout(){const d=workouts[activeDay],root=$('workout'),s=stateFor(),numRounds=d.rounds[week-1];round=Math.min(round,numRounds-1);root.innerHTML='';
       const head=el('div','heading-row'),titleBox=el('div');titleBox.append(el('div','kicker',`${d.day} · ${d.category}`),el('h2','',d.title),el('p','intro',`${d.duration} minuti indicativi · ${d.effort}`));head.append(titleBox,el('span','chip',`Sett. ${week}`));root.append(head);
       const p=el('div','progressline');const info=el('div','progress-caption');info.append(el('span','',`Completati ${countCompleted(activeDay)} di ${totalTasks(activeDay)} passaggi`),el('strong','',`${dayPct(activeDay)}%`));const track=el('div','track');const bar=el('div','bar');bar.style.width=`${dayPct(activeDay)}%`;track.append(bar);p.append(info,track);root.append(p);
       const warmH=el('div','block-head');const warmTitle=el('div','block-title');warmTitle.append(el('span','num','1'),document.createTextNode('Riscaldamento'));warmH.append(warmTitle,el('span','mini','5 minuti'));root.append(warmH,simpleTask('warmup','Riscaldamento',d.warm,300));
       const bHead=el('div','block-head');const bTitle=el('div','block-title');bTitle.append(el('span','num','2'),document.createTextNode('Circuito'));bHead.append(bTitle,el('span','mini',`${numRounds} giri`));root.append(bHead);
       const rounds=el('div','roundpicker');for(let r=0;r<numRounds;r++){const b=el('button','roundbtn',`Giro ${r+1} · ${d.exercises.filter((_,i)=>s.checked[`r${r}-e${i}`]).length}/${d.exercises.length}`);b.type='button';b.dataset.round=r;b.setAttribute('aria-pressed',String(round===r));rounds.append(b)}const h=el('span','round-hint',d.recovery?`${d.recovery} sec tra esercizi · ${d.roundRecovery} sec tra giri`:(d.roundRecovery?`${d.roundRecovery} sec tra giri`:'Senza recuperi programmati'));rounds.append(h);root.append(rounds);
-      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}if(photoGuides[name]) row.append(renderPhotoGuide(name));else if(photoReferences[name]) row.append(renderPhotoReference(name));list.append(row)});root.append(list);
+      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}if(photoGuides[name]) row.append(renderPhotoGuide(name));list.append(row)});root.append(list);
       root.append(el('div','note-strip',d.notes));
       const finH=el('div','block-head'),finTitle=el('div','block-title');finTitle.append(el('span','num','3'),document.createTextNode('Fase finale'));finH.append(finTitle);root.append(finH,simpleTask('finish','Movimento finale',d.finish,d.finishSeconds,{mar:'Dead bug facilitato',sab:'Camminata lenta'}[activeDay]));
       const stH=el('div','block-head'),stTitle=el('div','block-title');stTitle.append(el('span','num','4'),document.createTextNode('Stretching'));stH.append(stTitle);root.append(stH,simpleTask('stretch','Stretching e defaticamento',d.stretch,d.stretchSeconds));
