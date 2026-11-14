@@ -119,7 +119,8 @@
     .guide-photos figure{margin:0;min-width:0}
     .guide-photos img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:#f0f5f4;border-radius:9px}
     .guide-photos figcaption,.guide-credit{font-size:11px;line-height:1.4;color:var(--ink2);margin-top:5px}
-    .guide-credit a{color:var(--teal-dark)}
+    .guide-credit a,.exercise-reference{color:var(--teal-dark)}
+    .exercise-reference{grid-column:2/-1;justify-self:start;font-size:12px;font-weight:750;padding:8px 0}
     @media (prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -223,6 +224,41 @@
       }
     };
     const photoGuides = {
+      'Mini squat': {
+        id: 'mini-squat',
+        source: 'https://commons.wikimedia.org/wiki/File:Mini_squat.jpg',
+        credit: 'Bao Bao Leung 0218 · CC BY-SA 4.0',
+        license: 'https://creativecommons.org/licenses/by-sa/4.0/',
+        captions: ['Piega leggermente anche e ginocchia, con entrambi i piedi ben appoggiati. Poi torna in piedi.']
+      },
+      'Sollevamenti polpacci': {
+        id: 'polpacci',
+        source: 'https://www.elderly.gov.hk/english/education_and_media_resources/files/ham/8FormsStrengtheningExercise_EN.pdf',
+        credit: 'Elderly Health Service, Department of Health, Hong Kong',
+        license: 'https://www.elderly.gov.hk/english/notices.html',
+        captions: ['Parti con entrambi i talloni a terra. Puoi appoggiarti a una sedia stabile.', 'Alza entrambi i talloni, poi riabbassali con controllo.']
+      },
+      'Bird dog facilitato': {
+        id: 'bird-dog',
+        source: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10966814/',
+        credit: 'Cao B. e colleghi · BMJ Open · CC BY-NC 4.0',
+        license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+        captions: ['In quadrupedia, allunga un braccio in avanti con entrambe le ginocchia a terra. Riporta la mano a terra e cambia lato.']
+      },
+      'Pugni alternati in avanti': {
+        id: 'pugni-avanti',
+        source: 'https://www.pexels.com/photo/a-man-shadowboxing-8810145/',
+        credit: 'Los Muertos Crew · Pexels',
+        license: 'https://www.pexels.com/license/',
+        captions: ['La foto mostra un pugno a vuoto. Riporta la mano verso il petto e ripeti con l’altro braccio.']
+      },
+      'Camminata lenta': {
+        id: 'camminata',
+        source: 'https://commons.wikimedia.org/wiki/File:Walkingexercise.jpg',
+        credit: 'Johnorchard · CC BY-SA 4.0',
+        license: 'https://creativecommons.org/licenses/by-sa/4.0/',
+        captions: ['Cammina a un ritmo comodo. La foto mostra una camminata all’aperto.']
+      },
       'Squat a discesa lenta': {
         id: 'squat', source: 'Bodyweight_Squat',
         captions: ['Partenza in piedi, con i piedi ben appoggiati.', 'Scendi in tre secondi fino a una profondità che controlli, poi risali.']
@@ -235,6 +271,16 @@
         id: 'dead-bug', source: 'Dead_Bug',
         captions: ['Sdraiati con le ginocchia piegate e le braccia verso l’alto.', 'Muovi una gamba alla volta, mantenendo la schiena stabile. Torna al centro e cambia lato.']
       }
+    };
+    const photoReferences = {
+      'Push-up al muro': ['NHS · sequenza fotografica', 'https://bda.uk.com/static/156a6257-e691-4a97-a9a9ae90a38f10b0/NHS-Exercises-for-older-people-sit-down-strength-exercises.pdf#page=11'],
+      'Avvicinamento scapole': ['The Philadelphia Inquirer · foto in piedi', 'https://www.inquirer.com/health/wellness/exercises-for-better-posture-20210316.html'],
+      'Marcia sul posto': ['NHS · foto della marcia', 'https://www.nhs.uk/live-well/exercise/how-to-warm-up-before-exercising/'],
+      'Passi laterali': ['NHS · sequenza fotografica', 'https://www.nhs.uk/live-well/exercise/balance-exercises/'],
+      'Passo indietro alternato': ['Alberta Centre for Active Living · sezione «Backwards Steps»', 'https://sites.ualberta.ca/~active/older-adults/rural/guides/booklet-falls.pdf'],
+      'Affondo indietro corto': ['Hinge Health · esempio di affondo più profondo', 'https://www.hingehealth.com/resources/articles/reverse-lunges/'],
+      'Hip hinge': ['Muscle & Fitness · due foto senza pesi', 'https://www.muscleandfitness.com/exercise/workouts/leg-exercises/good-morning/'],
+      'Reverse snow angel': ['uFit · sequenza «リバーススノーエンジェル»', 'https://ufit.co.jp/blogs/training/latissimustraining']
     };
     const days=['lun','mar','gio','sab'];
     const hints={1:'Tecnica prima di tutto',2:'Mantieni il ritmo',3:'Più sicurezza nei movimenti',4:'Consolida, senza accelerare'};
@@ -297,11 +343,26 @@
         photos.append(figure);
       });
       const credit=el('p','guide-credit');
-      const source=el('a','','Fonte delle foto');
-      source.href=`https://github.com/yuhonas/free-exercise-db/tree/main/exercises/${guide.source}`;
+      const source=el('a','',guide.credit || 'Fonte delle foto');
+      source.href=guide.credit ? guide.source : `https://github.com/yuhonas/free-exercise-db/tree/main/exercises/${guide.source}`;
       credit.append(source);
+      if(guide.license){
+        const license=el('a','','Condizioni di riuso');
+        license.href=guide.license;
+        credit.append(document.createTextNode(' · '),license);
+      }
       details.append(photos,credit);
       return details;
+    }
+    function renderPhotoReference(name){
+      const [label,url]=photoReferences[name];
+      const link=el('a','exercise-reference',name==='Affondo indietro corto'?'Vedi affondo più profondo · fonte esterna':'Vedi esempio · fonte esterna');
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener noreferrer';
+      link.title=label;
+      link.setAttribute('aria-label',`Vedi esempio per ${name}: ${label} (nuova scheda)`);
+      return link;
     }
     function renderWorkout(){const d=workouts[activeDay],root=$('workout'),s=stateFor(),numRounds=d.rounds[week-1];round=Math.min(round,numRounds-1);root.innerHTML='';
       const head=el('div','heading-row'),titleBox=el('div');titleBox.append(el('div','kicker',`${d.day} · ${d.category}`),el('h2','',d.title),el('p','intro',`${d.duration} minuti indicativi · ${d.effort}`));head.append(titleBox,el('span','chip',`Sett. ${week}`));root.append(head);
@@ -309,9 +370,9 @@
       const warmH=el('div','block-head');const warmTitle=el('div','block-title');warmTitle.append(el('span','num','1'),document.createTextNode('Riscaldamento'));warmH.append(warmTitle,el('span','mini','5 minuti'));root.append(warmH,simpleTask('warmup','Riscaldamento',d.warm,300));
       const bHead=el('div','block-head');const bTitle=el('div','block-title');bTitle.append(el('span','num','2'),document.createTextNode('Circuito'));bHead.append(bTitle,el('span','mini',`${numRounds} giri`));root.append(bHead);
       const rounds=el('div','roundpicker');for(let r=0;r<numRounds;r++){const b=el('button','roundbtn',`Giro ${r+1} · ${d.exercises.filter((_,i)=>s.checked[`r${r}-e${i}`]).length}/${d.exercises.length}`);b.type='button';b.dataset.round=r;b.setAttribute('aria-pressed',String(round===r));rounds.append(b)}const h=el('span','round-hint',d.recovery?`${d.recovery} sec tra esercizi · ${d.roundRecovery} sec tra giri`:(d.roundRecovery?`${d.roundRecovery} sec tra giri`:'Senza recuperi programmati'));rounds.append(h);root.append(rounds);
-      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}if(photoGuides[name]) row.append(renderPhotoGuide(name));list.append(row)});root.append(list);
+      const list=el('div','exercise-list');d.exercises.forEach(([name,reps,desc,duration],i)=>{const id=`r${round}-e${i}`,done=!!s.checked[id];const row=el('div',`ex-row ${done?'checked':''}`);row.append(taskBox(id,done,`Giro ${round+1}, ${name}, completato`));const tx=el('div');tx.append(el('div','ex-title',name),el('div','ex-meta',reps),el('div','ex-desc',desc));row.append(tx);if(duration){const bt=el('button','smalltimer','Avvia tempo');bt.type='button';bt.dataset.duration=duration;bt.dataset.title=name;row.append(bt)}else if(done){row.append(el('span','complete-tag','Fatto'))}if(photoGuides[name]) row.append(renderPhotoGuide(name));else if(photoReferences[name]) row.append(renderPhotoReference(name));list.append(row)});root.append(list);
       root.append(el('div','note-strip',d.notes));
-      const finH=el('div','block-head'),finTitle=el('div','block-title');finTitle.append(el('span','num','3'),document.createTextNode('Fase finale'));finH.append(finTitle);root.append(finH,simpleTask('finish','Movimento finale',d.finish,d.finishSeconds,activeDay==='mar'?'Dead bug facilitato':undefined));
+      const finH=el('div','block-head'),finTitle=el('div','block-title');finTitle.append(el('span','num','3'),document.createTextNode('Fase finale'));finH.append(finTitle);root.append(finH,simpleTask('finish','Movimento finale',d.finish,d.finishSeconds,{mar:'Dead bug facilitato',sab:'Camminata lenta'}[activeDay]));
       const stH=el('div','block-head'),stTitle=el('div','block-title');stTitle.append(el('span','num','4'),document.createTextNode('Stretching'));stH.append(stTitle);root.append(stH,simpleTask('stretch','Stretching e defaticamento',d.stretch,d.stretchSeconds));
       $('dailyStats').textContent=`${dayPct(activeDay)}%`;$('weeklyStats').textContent=`${weekCount()}/4`;
     }
