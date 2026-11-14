@@ -27,6 +27,7 @@ Le sequenze dello squat, del ponte glutei e del dead bug provengono dal progetto
 
 | Esercizio | Fonte e condizioni di riuso |
 |---|---|
+| Push-up al muro | Ketut Subiyanto, [A Man Doing Wall Push-Ups](https://www.pexels.com/video/a-man-doing-wall-push-ups-5034563/), [licenza Pexels](https://www.pexels.com/license/). Due fotogrammi estratti dal video e convertiti in WebP. |
 | Marcia sul posto, passo indietro e passi laterali | Barker KL e colleghi, [BMJ Open, 2021;11:e052598](https://doi.org/10.1136/bmjopen-2021-052598), supplemento 2, foto 9A–9C. [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Foto estratte dal PDF e convertite in WebP. |
 | Mini squat | [Mini squat.jpg](https://commons.wikimedia.org/wiki/File:Mini_squat.jpg), Bao Bao Leung 0218, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). |
 | Sollevamenti sui polpacci | [8 Forms of Strengthening Exercise](https://www.elderly.gov.hk/english/education_and_media_resources/files/ham/8FormsStrengtheningExercise_EN.pdf), Elderly Health Service, Department of Health, Hong Kong. [Riuso non commerciale con attribuzione](https://www.elderly.gov.hk/english/notices.html). Le due foto sono state estratte dal PDF. |
